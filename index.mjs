@@ -3,24 +3,21 @@ import { fileURLToPath } from "node:url";
 
 import { promises as fsPromises } from "node:fs";
 import express from "express";
-import bodyParser from "body-parser";
+import multer from "multer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 let indexHtml;
-let successHtml;
-let failureHtml;
+let indexJs;
 
 Promise.all([
-  fsPromises.readFile(__dirname + "/html/index.html", "utf8"),
-  fsPromises.readFile(__dirname + "/html/success.html", "utf8"),
-  fsPromises.readFile(__dirname + "/html/failure.html", "utf8"),
+  fsPromises.readFile(__dirname + "/static-files/index.html", "utf8"),
+  fsPromises.readFile(__dirname + "/static-files/index.js", "utf8"),
 ])
-  .then(([indexData, successData, failureData]) => {
-    indexHtml = indexData.toString();
-    successHtml = successData.toString();
-    failureHtml = failureData.toString();
+  .then(([htmlData, jsData]) => {
+    indexHtml = htmlData.toString();
+    indexJs = jsData.toString();
 
     app.listen(8183, () => {
       console.log(`Example app listening on port 8183`);
@@ -28,22 +25,27 @@ Promise.all([
   })
   .catch((err) => console.error("Ошибка чтения файла:", err));
 
-app.use(bodyParser.urlencoded());
+const formDataParser = multer();
 
 app.get("/", (req, res) => {
   res.set("Content-Type", "text/html");
   res.send(indexHtml);
 });
 
-app.post("/", (req, res) => {
-  res.set("Content-Type", "text/html");
+app.get('/index.js', (req, res) => {
+  res.set("Content-Type", "application/javascript");
+  res.send(indexJs);
+});
+
+app.post("/", formDataParser.none(), (req, res) => {
+  res.set("Content-Type", "application/json");
 
   const userData = req.body;
 
   if (userData["input-1"] !== "hello" || userData["input-2"] !== "world") {
-    res.status(400).send(failureHtml);
+    res.status(400).send('{ "success": false }');
     return;
   }
 
-  res.send(successHtml);
+  res.send('{ "success": true }');
 });

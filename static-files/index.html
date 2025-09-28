@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Супер Форма</title>
+
+    <style>
+        #error-message {
+            display: none;
+            color: red;
+        }
+
+        #success-message {
+            display: none;
+            color: green;
+        }
+    </style>
+  </head>
+  <body>
+    <h1>Супер Форма</h1>
+
+    <div id="main-form" class="bla-bla">
+      <form action="/" method="post">
+        <fieldset>
+          <input
+            name="input-1"
+            type="text"
+            placeholder="Значение, которое нужно отправить на сервер 1"
+          />
+          <input
+            name="input-2"
+            type="text"
+            placeholder="Значение, которое нужно отправить на сервер 2"
+          />
+          <button type="submit">Отправить форму</button>
+        </fieldset>
+      </form>
+      <div id="error-message">
+        Что-то пошло не так во время отправки формы
+      </div>
+      <div id="success-message">
+        Ура! Форма отправлена!
+      </div>
+    </div>
+
+    <script src="/index.js"></script>
+  </body>
+</html>
