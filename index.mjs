@@ -1,7 +1,7 @@
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { promises as fsPromises } from "node:fs";
+import { createReadStream, promises as fsPromises, stat } from "node:fs";
 import express from "express";
 import multer from "multer";
 
@@ -9,18 +9,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 let indexHtml;
-let indexJs;
-let sourceMaps;
 
-Promise.all([
-  fsPromises.readFile(__dirname + "/dist/index.html", "utf8"),
-  fsPromises.readFile(__dirname + "/dist/27sept.ed56ae4a.js", "utf8"),
-  fsPromises.readFile(__dirname + "/dist/27sept.ed56ae4a.js.map", "utf8"),
-])
-  .then(([htmlData, jsData, smData]) => {
+fsPromises.readFile(__dirname + "/dist/index.html", "utf8")
+  .then((htmlData) => {
     indexHtml = htmlData.toString();
-    indexJs = jsData.toString();
-    sourceMaps = smData.toString();
 
     app.listen(8183, () => {
       console.log(`Example app listening on port 8183`);
@@ -35,12 +27,23 @@ app.get("/", (req, res) => {
   res.send(indexHtml);
 });
 
-app.get("/27sept.ed56ae4a.js", (req, res) => {
-  res.set("Content-Type", "application/javascript");
-  res.send(indexJs);
-});
+app.get("/assets/:file", (req, res) => {
+  const fileName = req.params.file;
+  const filePath = join(__dirname, "dist", fileName);
 
-app.get("/27sept.ed56ae4a.js.map", (req, res) => {
-  // res.set("Content-Type", "application/javascript");
-  res.send(indexJs);
+  stat(filePath, (err, stats) => {
+    if (err) {
+      return res.status(404).send("Файл не найден");
+    }
+
+     res.setHeader("Content-Type", "application/javascript; charset=UTF-8");
+     res.setHeader("Content-Length", stats.size);
+
+    const fileStream = createReadStream(filePath);
+    fileStream.pipe(res);
+
+    fileStream.on("error", (error) => {
+      res.status(500).send("Ошибка при чтении файла");
+    });
+  });
 });
