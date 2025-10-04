@@ -10,14 +10,17 @@ const app = express();
 
 let indexHtml;
 let indexJs;
+let sourceMaps;
 
 Promise.all([
-  fsPromises.readFile(__dirname + "/static-files/index.html", "utf8"),
-  fsPromises.readFile(__dirname + "/static-files/index.js", "utf8"),
+  fsPromises.readFile(__dirname + "/dist/index.html", "utf8"),
+  fsPromises.readFile(__dirname + "/dist/27sept.ed56ae4a.js", "utf8"),
+  fsPromises.readFile(__dirname + "/dist/27sept.ed56ae4a.js.map", "utf8"),
 ])
-  .then(([htmlData, jsData]) => {
+  .then(([htmlData, jsData, smData]) => {
     indexHtml = htmlData.toString();
     indexJs = jsData.toString();
+    sourceMaps = smData.toString();
 
     app.listen(8183, () => {
       console.log(`Example app listening on port 8183`);
@@ -32,20 +35,12 @@ app.get("/", (req, res) => {
   res.send(indexHtml);
 });
 
-app.get('/index.js', (req, res) => {
+app.get("/27sept.ed56ae4a.js", (req, res) => {
   res.set("Content-Type", "application/javascript");
   res.send(indexJs);
 });
 
-app.post("/", formDataParser.none(), (req, res) => {
-  res.set("Content-Type", "application/json");
-
-  const userData = req.body;
-
-  if (userData["input-1"] !== "hello" || userData["input-2"] !== "world") {
-    res.status(400).send('{ "success": false }');
-    return;
-  }
-
-  res.send('{ "success": true }');
+app.get("/27sept.ed56ae4a.js.map", (req, res) => {
+  // res.set("Content-Type", "application/javascript");
+  res.send(indexJs);
 });
